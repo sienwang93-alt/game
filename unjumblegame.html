@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>並び替えクイーンズ</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100%;
+            color: #333;
+        }
+        
+        html {
+            height: 100%;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .name-input {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .name-input input {
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            border: 3px solid #ddd;
+            border-radius: 50px;
+            width: 300px;
+            max-width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .name-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .japanese-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+
+        .word {
+            background: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .word:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .answer-area {
+            min-height: 80px;
+            padding: 20px;
+            background: #fff;
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .answer-area.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .answer-area.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .score-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .leaderboard {
+            display: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #feca57;
+        }
+
+        .rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            width: 50px;
+        }
+
+        .player-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .player-score {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .name-input input {
+                width: 250px;
+            }
+            
+            .score-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 並び替えクイーンズ 🏆</h1>
+        </div>
+        
+        <div class="content">
+            <!-- 名前入力画面 -->
+            <div id="nameScreen" class="name-input">
+                <h2>ゲームを始めましょう！</h2>
+                <p>あなたの名前を入力してください</p>
+                <input type="text" id="playerName" placeholder="名前を入力" maxlength="20">
+                <br><br>
+                <button class="btn" onclick="startGame()">ゲーム開始</button>
+            </div>
+
+            <!-- ゲーム画面 -->
+            <div id="gameScreen" class="game-area">
+                <div class="score-info">
+                    <div>プレイヤー: <span id="currentPlayer"></span></div>
+                    <div>問題: <span id="currentQuestion">1</span> / <span id="totalQuestions">5</span></div>
+                    <div>スコア: <span id="currentScore">0</span></div>
+                </div>
+
+                <div class="question">
+                    <div class="japanese-text" id="japaneseText"></div>
+                    <div class="word-bank" id="wordBank"></div>
+                    <div class="answer-area" id="answerArea"></div>
+                </div>
+
+                <div id="feedback" class="feedback" style="display: none;"></div>
+
+                <div style="text-align: center;">
+                    <button class="btn" id="checkBtn" onclick="checkAnswer()">答えをチェック</button>
+                    <button class="btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">次の問題</button>
+                    <button class="btn" onclick="clearAnswer()">クリア</button>
+                </div>
+            </div>
+
+            <!-- リーダーボード画面 -->
+            <div id="leaderboardScreen" class="leaderboard">
+                <h2 style="text-align: center; color: #667eea;">🏆 リーダーボード 🏆</h2>
+                <div id="leaderboardList"></div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="playAgain()">もう一度プレイ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+  　　　　<script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let playerName = "";
+    let selectedWords = [];
+
+    // ✅ Automatically load Excel questions from the server
+    async function loadExcelFromServer() {
+        try {
+            const response = await fetch("questions.xlsx");
+            if (!response.ok) throw new Error("Excel file not found.");
+            const data = await response.arrayBuffer();
+
+            const workbook = XLSX.read(data, { type: "array" });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(firstSheet);
+
+            questions = json.map(row => ({
+                japanese: row.japanese,
+                english: row.english.split(',').map(w => w.trim()),
+                correct: row.correct.trim()
+            }));
+
+            console.log(`✅ Loaded ${questions.length} questions from Excel`);
+        } catch (error) {
+            console.error("❌ Failed to load Excel file:", error);
+            alert("Error: Could not load questions.xlsx. Please check your server path.");
+        }
+    }
+
+    // Load Excel automatically when the page loads
+    window.addEventListener("DOMContentLoaded", loadExcelFromServer);
+
+
+        function startGame() {
+            const nameInput = document.getElementById('playerName');
+            playerName = nameInput.value.trim();
+            
+            if (!playerName) {
+                nameInput.style.borderColor = '#dc3545';
+                return;
+            }
+
+            document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('currentPlayer').textContent = playerName;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('japaneseText').textContent = question.japanese;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('currentScore').textContent = score;
+            
+            // 単語をシャッフル
+            const shuffledWords = [...question.english].sort(() => Math.random() - 0.5);
+            
+            const wordBank = document.getElementById('wordBank');
+            wordBank.innerHTML = '';
+            
+            shuffledWords.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word';
+                wordElement.textContent = word;
+                wordElement.onclick = () => selectWord(wordElement, word);
+                wordBank.appendChild(wordElement);
+            });
+            
+            document.getElementById('answerArea').innerHTML = '';
+            document.getElementById('answerArea').className = 'answer-area';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            document.getElementById('nextBtn').style.display = 'none';
+            selectedWords = [];
+        }
+
+        function selectWord(element, word) {
+            if (element.style.display === 'none') return;
+            
+            selectedWords.push(word);
+            element.style.display = 'none';
+            
+            const answerArea = document.getElementById('answerArea');
+            const wordElement = document.createElement('div');
+            wordElement.className = 'word';
+            wordElement.textContent = word;
+            wordElement.onclick = () => removeWord(wordElement, word);
+            answerArea.appendChild(wordElement);
+        }
+
+        function removeWord(element, word) {
+            const index = selectedWords.indexOf(word);
+            if (index > -1) {
+                selectedWords.splice(index, 1);
+            }
+            
+            element.remove();
+            
+            // 単語バンクに戻す
+            const wordBank = document.getElementById('wordBank');
+            const words = wordBank.querySelectorAll('.word');
+            words.forEach(w => {
+                if (w.textContent === word && w.style.display === 'none') {
+                    w.style.display = 'block';
+                    return;
+                }
+            });
+        }
+
+        function checkAnswer() {
+            const question = questions[currentQuestionIndex];
+            const userAnswer = selectedWords.join(' ');
+            const correctAnswer = question.correct;
+            
+            const answerArea = document.getElementById('answerArea');
+            const feedback = document.getElementById('feedback');
+            
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                answerArea.className = 'answer-area correct';
+                feedback.className = 'feedback correct';
+                feedback.textContent = '正解です！ 🎉';
+                score += 20;
+            } else {
+                answerArea.className = 'answer-area incorrect';
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = `不正解です。正解: ${correctAnswer}`;
+            }
+            
+            feedback.style.display = 'block';
+            document.getElementById('currentScore').textContent = score;
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex >= questions.length) {
+                showLeaderboard();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function clearAnswer() {
+            selectedWords = [];
+            document.getElementById('answerArea').innerHTML = '';
+            document.getElementById('answerArea').className = 'answer-area';
+            
+            const wordBank = document.getElementById('wordBank');
+            const words = wordBank.querySelectorAll('.word');
+            words.forEach(word => {
+                word.style.display = 'block';
+            });
+        }
+
+        function showLeaderboard() {
+            // スコアを保存
+            let leaderboard = JSON.parse(localStorage.getItem('wordGameLeaderboard') || '[]');
+            leaderboard.push({
+                name: playerName,
+                score: score,
+                date: new Date().toLocaleDateString('ja-JP')
+            });
+            
+            // スコア順にソート
+            leaderboard.sort((a, b) => b.score - a.score);
+            
+            // 上位10位まで保持
+            leaderboard = leaderboard.slice(0, 10);
+            localStorage.setItem('wordGameLeaderboard', JSON.stringify(leaderboard));
+            
+            // リーダーボード表示
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'block';
+            
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            
+            leaderboard.forEach((player, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                
+                let rankEmoji = '';
+                if (index === 0) rankEmoji = '🥇';
+                else if (index === 1) rankEmoji = '🥈';
+                else if (index === 2) rankEmoji = '🥉';
+                
+                item.innerHTML = `
+                    <div class="rank">${rankEmoji} ${index + 1}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">${player.date}</div>
+                    </div>
+                    <div class="player-score">${player.score}点</div>
+                `;
+                
+                leaderboardList.appendChild(item);
+            });
+        }
+
+        function playAgain() {
+            document.getElementById('leaderboardScreen').style.display = 'none';
+            document.getElementById('nameScreen').style.display = 'block';
+            document.getElementById('playerName').value = '';
+        }
+
+        // エンターキーでゲーム開始
+        document.getElementById('playerName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startGame();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98ed140a627d96be',t:'MTc2MDUwNzgzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
